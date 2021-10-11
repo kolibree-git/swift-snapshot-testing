@@ -12,12 +12,13 @@ extension Snapshotting where Value == UIView, Format == UIImage {
   /// - Parameters:
   ///   - drawHierarchyInKeyWindow: Utilize the simulator's key window in order to render `UIAppearance` and `UIVisualEffect`s. This option requires a host application for your tests and will _not_ work for framework test targets.
   ///   - precision: The percentage of pixels that must match.
+  ///   - colorimetryDelta: A value between 0 and 255, where 0 means color component values must match 100%.
   ///   - size: A view size override.
   ///   - traits: A trait collection override.
   public static func image(
     drawHierarchyInKeyWindow: Bool = false,
     precision: Float = 1,
-    colorimetryDelta: Int = 0,
+    colorimetryDelta: Int = defaultColorimetryDelta,
     size: CGSize? = nil,
     traits: UITraitCollection = .init()
     )
