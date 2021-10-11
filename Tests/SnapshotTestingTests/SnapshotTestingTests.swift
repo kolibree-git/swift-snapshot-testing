@@ -1195,10 +1195,7 @@ final class SnapshotTestingTests: XCTestCase {
 
   func testViewWithColorimetryDelta() {
     #if os(iOS)
-    func colorFromReference(offset: Int) -> UIColor {
-      let redValue = (128.0 + CGFloat(offset)) / 255
-      return UIColor(red: redValue, green: 0, blue: 0, alpha: 1)
-    }
+    // All the reference views have been recorded with a background color of red: 128, green: 0 & blue: 0.
 
     let delta = 5
     let view = UIView(frame: .init(x: 0, y: 0, width: 200, height: 200))
@@ -1232,10 +1229,7 @@ final class SnapshotTestingTests: XCTestCase {
 
   func testViewWithDefaultColorimetryDelta() {
     #if os(iOS)
-    func colorFromReference(offset: Int) -> UIColor {
-      let redValue = (128.0 + CGFloat(offset)) / 255
-      return UIColor(red: redValue, green: 0, blue: 0, alpha: 1)
-    }
+    // All the reference views have been recorded with a background color of red: 128, green: 0 & blue: 0.
 
     let delta = 5
     defaultColorimetryDelta = delta
@@ -1268,12 +1262,23 @@ final class SnapshotTestingTests: XCTestCase {
     #endif
   }
 
+  func testViewWithDefaultColorimetryDeltaOverridden() {
+    #if os(iOS)
+    // The reference views have been recorded with a background color of red: 127, green: 0 & blue: 0.
+    
+    defaultColorimetryDelta = 1
+    let view = UIView(frame: .init(x: 0, y: 0, width: 200, height: 200))
+
+    XCTExpectFailure("The following assertions are out of the colorimetry delta and should fail") {
+      view.backgroundColor = colorFromReference(offset: 0)
+      assertSnapshot(matching: view, as: .image(colorimetryDelta: 0))
+    }
+    #endif
+  }
+
   func testViewControllerWithColorimetryDelta() {
     #if os(iOS)
-    func colorFromReference(offset: Int) -> UIColor {
-      let redValue = (128.0 + CGFloat(offset)) / 255
-      return UIColor(red: redValue, green: 0, blue: 0, alpha: 1)
-    }
+    // All the reference view controllers have been recorded with a background color of red: 128, green: 0 & blue: 0.
 
     let delta = 5
     let vc = UIViewController()
@@ -1307,10 +1312,7 @@ final class SnapshotTestingTests: XCTestCase {
 
   func testViewControllerWithDefaultColorimetryDelta() {
     #if os(iOS)
-    func colorFromReference(offset: Int) -> UIColor {
-      let redValue = (128.0 + CGFloat(offset)) / 255
-      return UIColor(red: redValue, green: 0, blue: 0, alpha: 1)
-    }
+    // All the reference view controllers have been recorded with a background color of red: 128, green: 0 & blue: 0.
 
     let delta = 5
     defaultColorimetryDelta = delta
@@ -1342,6 +1344,25 @@ final class SnapshotTestingTests: XCTestCase {
     }
     #endif
   }
+
+  func testViewControllerWithDefaultColorimetryDeltaOverridden() {
+    #if os(iOS)
+    // The reference views have been recorded with a background color of red: 127, green: 0 & blue: 0.
+
+    defaultColorimetryDelta = 1
+    let vc = UIViewController()
+
+    XCTExpectFailure("The following assertions are out of the colorimetry delta and should fail") {
+      vc.view.backgroundColor = colorFromReference(offset: 0)
+      assertSnapshot(matching: vc, as: .image(on: .iPhoneX, colorimetryDelta: 0))
+    }
+    #endif
+  }
+}
+
+func colorFromReference(offset: Int) -> UIColor {
+  let redValue = (128.0 + CGFloat(offset)) / 255
+  return UIColor(red: redValue, green: 0, blue: 0, alpha: 1)
 }
 
 #if os(iOS)
