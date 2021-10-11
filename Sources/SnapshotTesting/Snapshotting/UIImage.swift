@@ -12,7 +12,7 @@ extension Diffing where Value == UIImage {
   /// - Parameter scale: Scale to use when loading the reference image from disk. If `nil` or the `UITraitCollection`s default value of `0.0`, the screens scale is used.
   /// - Parameter colorimetryDelta: A value between 0 and 255, where 0 means color component values must match 100%.
   /// - Returns: A new diffing strategy.
-  public static func image(precision: Float, colorimetryDelta: Int = 0, scale: CGFloat?) -> Diffing {
+  public static func image(precision: Float, colorimetryDelta: Int = defaultColorimetryDelta, scale: CGFloat?) -> Diffing {
     let imageScale: CGFloat
     if let scale = scale, scale != 0.0 {
       imageScale = scale
@@ -63,9 +63,13 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
   /// A snapshot strategy for comparing images based on pixel equality.
   ///
   /// - Parameter precision: The percentage of pixels that must match.
-  /// - Parameter scale: The scale of the reference image stored on disk.
   /// - Parameter colorimetryDelta: A value between 0 and 255, where 0 means color component values must match 100%.
-  public static func image(precision: Float, colorimetryDelta: Int = 0, scale: CGFloat?) -> Snapshotting {
+  /// - Parameter scale: The scale of the reference image stored on disk.
+  public static func image(
+    precision: Float,
+    colorimetryDelta: Int = defaultColorimetryDelta,
+    scale: CGFloat?
+  ) -> Snapshotting {
     return .init(
       pathExtension: "png",
       diffing: .image(precision: precision, colorimetryDelta: colorimetryDelta, scale: scale)
