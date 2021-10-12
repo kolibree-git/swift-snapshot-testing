@@ -9,7 +9,7 @@ public var diffTool: String? = nil
 public var isRecording = false
 
 /// A default value used for the `colorimetryDelta` parameter.
-public var defaultColorimetryDelta = 0
+public var defaultColorimetryDelta = 2
 
 /// Whether or not to record all new references.
 /// Due to a name clash in Xcode 12, this has been renamed to `isRecording`.
