@@ -10,9 +10,13 @@ extension Diffing where Value == UIImage {
   ///
   /// - Parameter precision: A value between 0 and 1, where 1 means the images must match 100% of their pixels.
   /// - Parameter scale: Scale to use when loading the reference image from disk. If `nil` or the `UITraitCollection`s default value of `0.0`, the screens scale is used.
-  /// - Parameter colorimetryDelta: A value between 0 and 255, where 0 means color component values must match 100%.
+  /// - Parameter colorComponentTolerance: A value between 0 and 255, where 0 means color component values must match 100%.
   /// - Returns: A new diffing strategy.
-  public static func image(precision: Float, colorimetryDelta: Int = defaultColorimetryDelta, scale: CGFloat?) -> Diffing {
+  public static func image(
+    precision: Float,
+    colorComponentTolerance: Int = defaultColorComponentTolerance,
+    scale: CGFloat?
+  ) -> Diffing {
     let imageScale: CGFloat
     if let scale = scale, scale != 0.0 {
       imageScale = scale
@@ -24,7 +28,7 @@ extension Diffing where Value == UIImage {
       toData: { $0.pngData() ?? emptyImage().pngData()! },
       fromData: { UIImage(data: $0, scale: imageScale)! }
     ) { old, new in
-      guard !compare(old, new, precision: precision, colorimetryDelta: colorimetryDelta) else { return nil }
+      guard !compare(old, new, precision: precision, colorComponentTolerance: colorComponentTolerance) else { return nil }
       let difference = SnapshotTesting.diff(old, new)
       let message = new.size == old.size
         ? "Newly-taken snapshot does not match reference."
@@ -63,16 +67,16 @@ extension Snapshotting where Value == UIImage, Format == UIImage {
   /// A snapshot strategy for comparing images based on pixel equality.
   ///
   /// - Parameter precision: The percentage of pixels that must match.
-  /// - Parameter colorimetryDelta: A value between 0 and 255, where 0 means color component values must match 100%.
+  /// - Parameter colorComponentTolerance: A value between 0 and 255, where 0 means color component values must match 100%.
   /// - Parameter scale: The scale of the reference image stored on disk.
   public static func image(
     precision: Float,
-    colorimetryDelta: Int = defaultColorimetryDelta,
+    colorComponentTolerance: Int = defaultColorComponentTolerance,
     scale: CGFloat?
   ) -> Snapshotting {
     return .init(
       pathExtension: "png",
-      diffing: .image(precision: precision, colorimetryDelta: colorimetryDelta, scale: scale)
+      diffing: .image(precision: precision, colorComponentTolerance: colorComponentTolerance, scale: scale)
     )
   }
 }
@@ -82,7 +86,7 @@ let imageContextColorSpace = CGColorSpace(name: CGColorSpace.sRGB)
 let imageContextBitsPerComponent = 8
 let imageContextBytesPerPixel = 4
 
-private func compare(_ old: UIImage, _ new: UIImage, precision: Float, colorimetryDelta: Int) -> Bool {
+private func compare(_ old: UIImage, _ new: UIImage, precision: Float, colorComponentTolerance: Int) -> Bool {
   guard let oldCgImage = old.cgImage else { return false }
   guard let newCgImage = new.cgImage else { return false }
   guard oldCgImage.width != 0 else { return false }
@@ -107,17 +111,17 @@ private func compare(_ old: UIImage, _ new: UIImage, precision: Float, colorimet
   if memcmp(oldData, newerData, byteCount) == 0 { return true }
 
   let precision = min(max(precision, 0), 1)
-  let colorimetryDelta = min(max(colorimetryDelta, 0), 255)
+  let colorComponentTolerance = min(max(colorComponentTolerance, 0), 255)
 
-  if precision == 1 && colorimetryDelta == 0 { return false }
-  if precision == 0 || colorimetryDelta == 255 { return true }
+  if precision == 1 && colorComponentTolerance == 0 { return false }
+  if precision == 0 || colorComponentTolerance == 255 { return true }
 
   let threshold = 1 - precision
   var differentPixelCount = 0
 
   for byte in 0..<byteCount {
     if oldBytes[byte] != newerBytes[byte] {
-      if colorimetryDelta == 0 || abs(Int(oldBytes[byte]) - Int(newerBytes[byte])) > colorimetryDelta {
+      if colorComponentTolerance == 0 || abs(Int(oldBytes[byte]) - Int(newerBytes[byte])) > colorComponentTolerance {
         differentPixelCount += 1
 
         if Float(differentPixelCount) / Float(byteCount) > threshold {
